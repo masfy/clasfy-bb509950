@@ -4,20 +4,44 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AppSidebar } from "@/components/app-sidebar";
+import { Header } from "@/components/auth/Header";
+import { LoginForm } from "@/components/auth/LoginForm";
 import Dashboard from "./pages/Dashboard";
+import StudentDashboard from "./pages/StudentDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-function Layout({ children }: { children: React.ReactNode }) {
+function ProtectedLayout({ children }: { children: React.ReactNode }) {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Memuat...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginForm />;
+  }
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
-        <main className="flex-1 overflow-hidden">
-          {children}
-        </main>
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Header />
+          <main className="flex-1 overflow-auto">
+            {children}
+          </main>
+        </div>
       </div>
     </SidebarProvider>
   );
@@ -29,36 +53,71 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            {/* Teacher Routes */}
-            <Route path="/kelas" element={<div className="p-6"><h1 className="text-2xl font-bold">Manajemen Kelas</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div>} />
-            <Route path="/siswa" element={<div className="p-6"><h1 className="text-2xl font-bold">Data Siswa</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div>} />
-            <Route path="/mata-pelajaran" element={<div className="p-6"><h1 className="text-2xl font-bold">Mata Pelajaran</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div>} />
-            <Route path="/kategori-penilaian" element={<div className="p-6"><h1 className="text-2xl font-bold">Kategori Penilaian</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div>} />
-            <Route path="/bobot-penilaian" element={<div className="p-6"><h1 className="text-2xl font-bold">Bobot Penilaian</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div>} />
-            <Route path="/input-nilai" element={<div className="p-6"><h1 className="text-2xl font-bold">Input Nilai</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div>} />
-            <Route path="/input-kehadiran" element={<div className="p-6"><h1 className="text-2xl font-bold">Input Kehadiran</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div>} />
-            <Route path="/jurnal-harian" element={<div className="p-6"><h1 className="text-2xl font-bold">Jurnal Harian</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div>} />
-            <Route path="/rekap-nilai" element={<div className="p-6"><h1 className="text-2xl font-bold">Rekap Nilai</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div>} />
-            <Route path="/rekap-kehadiran" element={<div className="p-6"><h1 className="text-2xl font-bold">Rekap Kehadiran</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div>} />
-            <Route path="/gamifikasi" element={<div className="p-6"><h1 className="text-2xl font-bold">Sistem Gamifikasi</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div>} />
-            <Route path="/profil" element={<div className="p-6"><h1 className="text-2xl font-bold">Profil Guru</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div>} />
-            
-            {/* Student Routes */}
-            <Route path="/siswa/dashboard" element={<div className="p-6"><h1 className="text-2xl font-bold">Dashboard Siswa</h1><p className="text-muted-foreground">Portal RPG siswa akan segera hadir</p></div>} />
-            <Route path="/siswa/nilai" element={<div className="p-6"><h1 className="text-2xl font-bold">Nilai & Tugas</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div>} />
-            <Route path="/siswa/progress" element={<div className="p-6"><h1 className="text-2xl font-bold">Progress Belajar</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div>} />
-            <Route path="/siswa/leaderboard" element={<div className="p-6"><h1 className="text-2xl font-bold">Leaderboard</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div>} />
-            <Route path="/siswa/profil" element={<div className="p-6"><h1 className="text-2xl font-bold">Profil Siswa</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div>} />
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Layout>
+        <AuthProvider>
+          <ProtectedLayout>
+            <Routes>
+              <Route path="/" element={<DashboardRouter />} />
+              
+              {/* Teacher Routes */}
+              <Route path="/kelas" element={<TeacherRoute><div className="p-6"><h1 className="text-2xl font-bold">Manajemen Kelas</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></TeacherRoute>} />
+              <Route path="/siswa" element={<TeacherRoute><div className="p-6"><h1 className="text-2xl font-bold">Data Siswa</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></TeacherRoute>} />
+              <Route path="/mata-pelajaran" element={<TeacherRoute><div className="p-6"><h1 className="text-2xl font-bold">Mata Pelajaran</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></TeacherRoute>} />
+              <Route path="/kategori-penilaian" element={<TeacherRoute><div className="p-6"><h1 className="text-2xl font-bold">Kategori Penilaian</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></TeacherRoute>} />
+              <Route path="/bobot-penilaian" element={<TeacherRoute><div className="p-6"><h1 className="text-2xl font-bold">Bobot Penilaian</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></TeacherRoute>} />
+              <Route path="/input-nilai" element={<TeacherRoute><div className="p-6"><h1 className="text-2xl font-bold">Input Nilai</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></TeacherRoute>} />
+              <Route path="/input-kehadiran" element={<TeacherRoute><div className="p-6"><h1 className="text-2xl font-bold">Input Kehadiran</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></TeacherRoute>} />
+              <Route path="/jurnal-harian" element={<TeacherRoute><div className="p-6"><h1 className="text-2xl font-bold">Jurnal Harian</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></TeacherRoute>} />
+              <Route path="/rekap-nilai" element={<TeacherRoute><div className="p-6"><h1 className="text-2xl font-bold">Rekap Nilai</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></TeacherRoute>} />
+              <Route path="/rekap-kehadiran" element={<TeacherRoute><div className="p-6"><h1 className="text-2xl font-bold">Rekap Kehadiran</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></TeacherRoute>} />
+              <Route path="/gamifikasi" element={<TeacherRoute><div className="p-6"><h1 className="text-2xl font-bold">Sistem Gamifikasi</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></TeacherRoute>} />
+              <Route path="/profil" element={<div className="p-6"><h1 className="text-2xl font-bold">Profil</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div>} />
+              
+              {/* Student Routes */}
+              <Route path="/siswa/dashboard" element={<StudentRoute><StudentDashboard /></StudentRoute>} />
+              <Route path="/siswa/nilai" element={<StudentRoute><div className="p-6"><h1 className="text-2xl font-bold">Nilai & Tugas</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></StudentRoute>} />
+              <Route path="/siswa/progress" element={<StudentRoute><div className="p-6"><h1 className="text-2xl font-bold">Progress Belajar</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></StudentRoute>} />
+              <Route path="/siswa/leaderboard" element={<StudentRoute><div className="p-6"><h1 className="text-2xl font-bold">Leaderboard</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></StudentRoute>} />
+              <Route path="/siswa/profil" element={<StudentRoute><div className="p-6"><h1 className="text-2xl font-bold">Profil Siswa</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></StudentRoute>} />
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </ProtectedLayout>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
+
+// Component to route to appropriate dashboard based on user role
+function DashboardRouter() {
+  const { user } = useAuth();
+  
+  if (user?.role === 'siswa') {
+    return <StudentDashboard />;
+  }
+  
+  return <Dashboard />;
+}
+
+// Route protection components
+function TeacherRoute({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  
+  if (user?.role !== 'guru') {
+    return <NotFound />;
+  }
+  
+  return <>{children}</>;
+}
+
+function StudentRoute({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  
+  if (user?.role !== 'siswa') {
+    return <NotFound />;
+  }
+  
+  return <>{children}</>;
+}
 
 export default App;

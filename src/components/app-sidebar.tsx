@@ -13,6 +13,7 @@ import {
   BookMarked
 } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
+import { useAuth } from "@/contexts/AuthContext"
 
 import {
   Sidebar,
@@ -59,9 +60,9 @@ export function AppSidebar() {
   const currentPath = location.pathname
   const collapsed = state === "collapsed"
 
-  // Determine if this is a student route
-  const isStudentRoute = currentPath.startsWith('/siswa')
-  const menuItems = isStudentRoute ? studentMenuItems : teacherMenuItems
+  // Get user role from auth context
+  const { user } = useAuth()
+  const menuItems = user?.role === 'siswa' ? studentMenuItems : teacherMenuItems
 
   const isActive = (path: string) => {
     if (path === "/" && currentPath === "/") return true
@@ -87,7 +88,7 @@ export function AppSidebar() {
             <div>
               <h1 className="text-lg font-bold text-primary">Clasfy</h1>
               <p className="text-xs text-muted-foreground">
-                {isStudentRoute ? "Portal Siswa" : "Portal Guru"}
+                {user?.role === 'siswa' ? "Portal Siswa" : "Portal Guru"}
               </p>
             </div>
           )}

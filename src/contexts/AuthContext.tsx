@@ -20,6 +20,7 @@ export interface AuthContextType {
   isLoading: boolean
   login: (email: string, password: string, role: UserRole) => Promise<void>
   logout: () => void
+  updateAvatar: (avatar: string) => void
   isAuthenticated: boolean
 }
 
@@ -100,12 +101,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('clasfy_user')
   }
 
+  const updateAvatar = (avatar: string) => {
+    if (user) {
+      const updatedUser = { ...user, avatar }
+      setUser(updatedUser)
+      localStorage.setItem('clasfy_user', JSON.stringify(updatedUser))
+    }
+  }
+
   return (
     <AuthContext.Provider value={{
       user,
       isLoading,
       login,
       logout,
+      updateAvatar,
       isAuthenticated: !!user
     }}>
       {children}

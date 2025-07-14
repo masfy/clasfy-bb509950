@@ -7,6 +7,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Header } from "@/components/auth/Header";
+import { Footer } from "@/components/layout/Footer";
 import { LoginForm } from "@/components/auth/LoginForm";
 import Dashboard from "./pages/Dashboard";
 import StudentDashboard from "./pages/StudentDashboard";
@@ -41,6 +42,7 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
           <main className="flex-1 overflow-auto">
             {children}
           </main>
+          <Footer />
         </div>
       </div>
     </SidebarProvider>

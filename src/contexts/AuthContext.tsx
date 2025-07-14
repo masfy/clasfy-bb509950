@@ -8,6 +8,7 @@ export interface User {
   email: string
   role: UserRole
   avatar?: string
+  photo?: string
   // Guru specific fields
   nip?: string
   // Siswa specific fields
@@ -21,6 +22,7 @@ export interface AuthContextType {
   login: (email: string, password: string, role: UserRole) => Promise<void>
   logout: () => void
   updateAvatar: (avatar: string) => void
+  updateProfile: (data: Partial<User>) => void
   isAuthenticated: boolean
 }
 
@@ -109,6 +111,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const updateProfile = (data: Partial<User>) => {
+    if (user) {
+      const updatedUser = { ...user, ...data }
+      setUser(updatedUser)
+      localStorage.setItem('clasfy_user', JSON.stringify(updatedUser))
+    }
+  }
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -116,6 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       login,
       logout,
       updateAvatar,
+      updateProfile,
       isAuthenticated: !!user
     }}>
       {children}

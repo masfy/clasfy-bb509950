@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true)
     try {
       // Call Google Apps Script API
-      const response = await fetch('YOUR_GOOGLE_APPS_SCRIPT_URL', {
+      const response = await fetch('https://script.google.com/macros/s/AKfycbyHPKmhprRbXWiXfePFPjc26LlcNcoT6oxJ37bfX96sZngZ1aZ-20e_-8VbfI8pwHokWw/exec', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

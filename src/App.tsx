@@ -18,6 +18,11 @@ import Subjects from "./pages/Subjects";
 import GradeInput from "./pages/GradeInput";
 import DailyJournal from "./pages/DailyJournal";
 import Profile from "./pages/Profile";
+import GradeCategories from "./pages/GradeCategories";
+import AttendanceInput from "./pages/AttendanceInput";
+import GradeReport from "./pages/GradeReport";
+import AttendanceReport from "./pages/AttendanceReport";
+import Gamification from "./pages/Gamification";
 
 const queryClient = new QueryClient();
 
@@ -70,14 +75,14 @@ const App = () => (
               <Route path="/kelas" element={<TeacherRoute><Classes /></TeacherRoute>} />
               <Route path="/siswa" element={<TeacherRoute><Students /></TeacherRoute>} />
               <Route path="/mata-pelajaran" element={<TeacherRoute><Subjects /></TeacherRoute>} />
-              <Route path="/kategori-penilaian" element={<TeacherRoute><div className="p-6"><h1 className="text-2xl font-bold">Kategori Penilaian</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></TeacherRoute>} />
-              <Route path="/bobot-penilaian" element={<TeacherRoute><div className="p-6"><h1 className="text-2xl font-bold">Bobot Penilaian</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></TeacherRoute>} />
+              <Route path="/kategori-penilaian" element={<TeacherRoute><GradeCategories /></TeacherRoute>} />
+              <Route path="/bobot-penilaian" element={<TeacherRoute><GradeCategories /></TeacherRoute>} />
               <Route path="/input-nilai" element={<TeacherRoute><GradeInput /></TeacherRoute>} />
-              <Route path="/input-kehadiran" element={<TeacherRoute><div className="p-6"><h1 className="text-2xl font-bold">Input Kehadiran</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></TeacherRoute>} />
+              <Route path="/input-kehadiran" element={<TeacherRoute><AttendanceInput /></TeacherRoute>} />
               <Route path="/jurnal-harian" element={<TeacherRoute><DailyJournal /></TeacherRoute>} />
-              <Route path="/rekap-nilai" element={<TeacherRoute><div className="p-6"><h1 className="text-2xl font-bold">Rekap Nilai</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></TeacherRoute>} />
-              <Route path="/rekap-kehadiran" element={<TeacherRoute><div className="p-6"><h1 className="text-2xl font-bold">Rekap Kehadiran</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></TeacherRoute>} />
-              <Route path="/gamifikasi" element={<TeacherRoute><div className="p-6"><h1 className="text-2xl font-bold">Sistem Gamifikasi</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></TeacherRoute>} />
+              <Route path="/rekap-nilai" element={<TeacherRoute><GradeReport /></TeacherRoute>} />
+              <Route path="/rekap-kehadiran" element={<TeacherRoute><AttendanceReport /></TeacherRoute>} />
+              <Route path="/gamifikasi" element={<TeacherRoute><Gamification /></TeacherRoute>} />
               <Route path="/profil" element={<Profile />} />
               
               {/* Student Routes */}

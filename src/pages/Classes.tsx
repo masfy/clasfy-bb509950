@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Class {
@@ -17,15 +17,42 @@ interface Class {
 }
 
 export default function Classes() {
-  const [classes, setClasses] = useState<Class[]>([
-    { id: "1", name: "X IPA 1", description: "Kelas 10 IPA 1", studentCount: 32 },
-    { id: "2", name: "X IPA 2", description: "Kelas 10 IPA 2", studentCount: 30 },
-    { id: "3", name: "XI IPA 1", description: "Kelas 11 IPA 1", studentCount: 28 }
-  ]);
+  const [classes, setClasses] = useState<Class[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingClass, setEditingClass] = useState<Class | null>(null);
   const [formData, setFormData] = useState({ name: "", description: "" });
   const { toast } = useToast();
+
+  const API_URL = 'https://script.google.com/macros/s/AKfycbyHPKmhprRbXWiXfePFPjc26LlcNcoT6oxJ37bfX96sZngZ1aZ-20e_-8VbfI8pwHokWw/exec';
+
+  useEffect(() => {
+    fetchClasses();
+  }, []);
+
+  const fetchClasses = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'getClasses' })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setClasses(data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching classes:', error);
+      toast({ 
+        title: "Error", 
+        description: "Gagal memuat data kelas",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,35 +159,50 @@ export default function Classes() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nama Kelas</TableHead>
-                <TableHead>Deskripsi</TableHead>
-                <TableHead>Jumlah Siswa</TableHead>
-                <TableHead>Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {classes.map((cls) => (
-                <TableRow key={cls.id}>
-                  <TableCell className="font-medium">{cls.name}</TableCell>
-                  <TableCell>{cls.description}</TableCell>
-                  <TableCell>{cls.studentCount} siswa</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm" onClick={() => handleEdit(cls)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleDelete(cls.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          {isLoading ? (
+            <div className="flex justify-center items-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <span className="ml-2">Memuat data kelas...</span>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nama Kelas</TableHead>
+                  <TableHead>Deskripsi</TableHead>
+                  <TableHead>Jumlah Siswa</TableHead>
+                  <TableHead>Aksi</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {classes.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                      Belum ada data kelas. Tambahkan kelas baru untuk memulai.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  classes.map((cls) => (
+                    <TableRow key={cls.id}>
+                      <TableCell className="font-medium">{cls.name}</TableCell>
+                      <TableCell>{cls.description}</TableCell>
+                      <TableCell>{cls.studentCount} siswa</TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button variant="outline" size="sm" onClick={() => handleEdit(cls)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleDelete(cls.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true)
     try {
       // Call Google Apps Script API
-      const response = await fetch('https://script.google.com/macros/s/AKfycbyHPKmhprRbXWiXfePFPjc26LlcNcoT6oxJ37bfX96sZngZ1aZ-20e_-8VbfI8pwHokWw/exec', {
+      const response = await fetch(import.meta.env.VITE_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -79,20 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('Login error:', error)
-      // For demo purposes, create mock user
-      const mockUser: User = {
-        id: '1',
-        name: role === 'guru' ? 'Bu Sarah Wijaya' : 'Ahmad Rizki',
-        email,
-        role,
-        avatar: '',
-        nip: role === 'guru' ? '196512345678901234' : undefined,
-        nisn: role === 'siswa' ? '0012345678' : undefined,
-        kelas: role === 'siswa' ? 'XII IPA 1' : undefined
-      }
-      
-      setUser(mockUser)
-      localStorage.setItem('clasfy_user', JSON.stringify(mockUser))
+      throw error;
     } finally {
       setIsLoading(false)
     }

@@ -1,6 +1,6 @@
 // Clasfy Backend - Google Apps Script
 // Spreadsheet ID - Ganti dengan ID spreadsheet Anda
-const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE';
+const SPREADSHEET_ID = '1HCvUHWAedhj6pwUrizdD7L5eJIqog8nYUgFEmML3hcY';
 
 function doPost(e) {
   try {

@@ -1,4 +1,4 @@
-// Clasfy Backend - Google Apps Script
+// Clasfy Backend - Google Apps Scriptku
 // Spreadsheet ID - Ganti dengan ID spreadsheet Anda
 const SPREADSHEET_ID = '1HCvUHWAedhj6pwUrizdD7L5eJIqog8nYUgFEmML3hcY';
 

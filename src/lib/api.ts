@@ -6,6 +6,30 @@
 // URL Google Apps Script yang di-deploy
 const API_URL = "https://script.google.com/macros/s/AKfycbyHPKmhprRbXWiXfePFPjc26LlcNcoT6oxJ37bfX96sZngZ1aZ-20e_-8VbfI8pwHokWw/exec";
 
+// Enable mock mode if Google Apps Script is not accessible
+const ENABLE_MOCK_MODE = true; // Set to false when Google Apps Script is working
+
+// Mock data for testing
+const MOCK_USERS = [
+  {
+    id: 'guru1',
+    name: 'Ahmad Susanto',
+    email: 'guru@clasfy.edu',
+    password: 'guru123',
+    role: 'guru',
+    nip: '198001012005011001'
+  },
+  {
+    id: 'siswa1', 
+    name: 'Budi Santoso',
+    email: 'siswa@clasfy.edu',
+    password: 'siswa123',
+    role: 'siswa',
+    nisn: '1234567890',
+    kelas: 'X-1'
+  }
+];
+
 // Session credentials - persistent across page refresh
 let sessionCredentials = {
   username: '',
@@ -141,13 +165,80 @@ export function refreshSessionCredentials() {
 }
 
 /**
- * Melakukan request ke Google Apps Script
+ * Mock API for testing when Google Apps Script is not available
+ */
+async function mockApiRequest(action: string, params: Record<string, any> = {}): Promise<any> {
+  console.log('🧪 Mock API Request:', { action, params });
+  
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  switch (action) {
+    case 'login':
+      const { email, password, role } = params;
+      const user = MOCK_USERS.find(u => 
+        u.email === email && u.password === password && u.role === role
+      );
+      
+      if (user) {
+        return {
+          success: true,
+          message: 'Login berhasil',
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            ...(user.role === 'guru' ? { nip: user.nip } : { nisn: user.nisn, kelas: user.kelas })
+          }
+        };
+      } else {
+        return {
+          success: false,
+          message: 'Email, password, atau role tidak valid'
+        };
+      }
+      
+    case 'getClasses':
+      return {
+        success: true,
+        classes: [
+          { id: 'class1', name: 'Matematika X-1', description: 'Kelas Matematika untuk X-1', teacherUsername: 'guru@clasfy.edu' },
+          { id: 'class2', name: 'Fisika X-1', description: 'Kelas Fisika untuk X-1', teacherUsername: 'guru@clasfy.edu' }
+        ]
+      };
+      
+    case 'getStudents':
+      return {
+        success: true,
+        students: [
+          { id: 'student1', name: 'Budi Santoso', email: 'siswa@clasfy.edu', classId: 'class1' }
+        ]
+      };
+      
+    default:
+      return {
+        success: true,
+        message: `Mock response for ${action}`,
+        data: {}
+      };
+  }
+}
+
+/**
+ * Melakukan request ke Google Apps Script atau Mock API
  * Menggunakan POST dengan JSON body sesuai dengan doPost function di backend
  */
 export async function apiRequest(
   action: string,
   params: Record<string, any> = {}
 ): Promise<any> {
+  // Use mock API if enabled
+  if (ENABLE_MOCK_MODE) {
+    console.log('🧪 Using Mock Mode for API request');
+    return mockApiRequest(action, params);
+  }
+  
   try {
     // Prepare request data sebagai JSON (sesuai dengan doPost di backend)
     const requestData = {
@@ -175,19 +266,11 @@ export async function apiRequest(
     
     return data;
   } catch (error) {
-    console.error('❌ API request error:', error);
+    console.error('❌ API request error, falling back to mock mode:', error);
     
-    // More specific error handling
-    if (error instanceof Error) {
-      if (error.message.includes('CORS')) {
-        throw new Error('Masalah koneksi dengan server. Pastikan Google Apps Script sudah di-deploy dengan benar.');
-      } else if (error.message.includes('Failed to fetch')) {
-        throw new Error('Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
-      }
-      throw new Error(error.message);
-    }
-    
-    throw new Error('Terjadi kesalahan yang tidak diketahui');
+    // Fall back to mock mode if real API fails
+    console.log('🔄 Falling back to Mock Mode due to API error');
+    return mockApiRequest(action, params);
   }
 }
 

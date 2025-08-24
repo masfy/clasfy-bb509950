@@ -3,11 +3,11 @@
  * Mengikuti aturan CORS untuk mencegah masalah cross-origin
  */
 
-// URL Google Apps Script yang di-deploy
-const API_URL = "https://script.google.com/macros/s/AKfycbyHPKmhprRbXWiXfePFPjc26LlcNcoT6oxJ37bfX96sZngZ1aZ-20e_-8VbfI8pwHokWw/exec";
+// URL Google Apps Script yang di-deploy - Updated to new URL
+const API_URL = "https://script.google.com/macros/s/AKfycbz_JhmA3VFQ5jGcFs2Aq_fy-2wbJ57yN1NzC1Wfhc06049tdg26eOnk-lzEHdVeW1iQgQ/exec";
 
 // Enable mock mode if Google Apps Script is not accessible
-const ENABLE_MOCK_MODE = true; // Set to false when Google Apps Script is working
+const ENABLE_MOCK_MODE = false; // Disabled to use real Google Apps Script
 
 // Mock data for testing
 const MOCK_USERS = [

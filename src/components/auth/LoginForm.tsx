@@ -34,9 +34,10 @@ export function LoginForm() {
         description: `Selamat datang di Clasfy!`,
       })
     } catch (error) {
+      const errorMessage = (error as Error).message || "Terjadi kesalahan yang tidak diketahui.";
       toast({
         title: "Login Gagal",
-        description: "Email atau password salah. Silakan coba lagi.",
+        description: errorMessage,
         variant: "destructive"
       })
     }

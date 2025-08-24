@@ -8,7 +8,7 @@
 // Current URLs sudah expired, perlu deploy ulang setelah fix backend
 // Lihat README.md untuk panduan cara men-deploy Google Apps Script
 // ⚠️  UPDATE URL INI SETELAH DEPLOY ULANG SCRIPT YANG SUDAH DIPERBAIKI ⚠️
-const API_URL = "https://script.google.com/macros/s/AKfycbyioDh50RXVbhMIHQoXWQsViKS_NzNrCYs6WsIyWOqmtWk3piN107R1NqjpMpXZsmKbVQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyHPKmhprRbXWiXfePFPjc26LlcNcoT6oxJ37bfX96sZngZ1aZ-20e_-8VbfI8pwHokWw/exec";
 
 // Session credentials - persistent across page refresh
 let sessionCredentials = {
@@ -249,9 +249,9 @@ export async function apiRequest(
  * Auth API
  */
 export const authApi = {
-  login: (username: string, password: string) => {
+  login: (username: string, password: string, role: string) => {
     // Login and store credentials
-    return apiRequest('login', { username, password }).then(response => {
+    return apiRequest('login', { username, password, role }).then(response => {
       if (response.success) {
         // Store in session memory and localStorage
         setSessionCredentials(username, password, response.user);

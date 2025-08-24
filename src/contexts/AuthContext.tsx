@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
+import { authApi, initializeSession } from '@/lib/api'
 
 export type UserRole = 'guru' | 'siswa'
 
@@ -33,68 +34,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Check if user is already logged in
-    const savedUser = localStorage.getItem('clasfy_user')
-    if (savedUser) {
-      setUser(JSON.parse(savedUser))
-    }
-    setIsLoading(false)
+    const loadUser = () => {
+      setIsLoading(true);
+      initializeSession();
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      }
+      setIsLoading(false);
+    };
+    loadUser();
   }, [])
 
   const login = async (email: string, password: string, role: UserRole) => {
     setIsLoading(true)
     try {
-      // Call Google Apps Script API
-      const response = await fetch(import.meta.env.VITE_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'login',
-          email,
-          password,
-          role
-        })
-      })
-
-      const data = await response.json()
-      
-      if (data.success) {
-        const userData: User = {
-          id: data.user.id,
-          name: data.user.name,
-          email: data.user.email,
-          role: data.user.role,
-          avatar: data.user.avatar,
-          nip: data.user.nip,
-          nisn: data.user.nisn,
-          kelas: data.user.kelas
-        }
-        
-        setUser(userData)
-        localStorage.setItem('clasfy_user', JSON.stringify(userData))
+      const response = await authApi.login(email, password, role)
+      if (response.success) {
+        setUser(response.user)
+        // authApi.login already saves to localStorage
       } else {
-        throw new Error(data.message || 'Login gagal')
+        throw new Error(response.error || 'Login gagal')
       }
     } catch (error) {
       console.error('Login error:', error)
-      throw error;
+      throw error
     } finally {
       setIsLoading(false)
     }
   }
 
   const logout = () => {
+    authApi.logout()
     setUser(null)
-    localStorage.removeItem('clasfy_user')
   }
 
   const updateAvatar = (avatar: string) => {
     if (user) {
       const updatedUser = { ...user, avatar }
       setUser(updatedUser)
-      localStorage.setItem('clasfy_user', JSON.stringify(updatedUser))
+      localStorage.setItem('user', JSON.stringify(updatedUser))
     }
   }
 
@@ -102,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (user) {
       const updatedUser = { ...user, ...data }
       setUser(updatedUser)
-      localStorage.setItem('clasfy_user', JSON.stringify(updatedUser))
+      localStorage.setItem('user', JSON.stringify(updatedUser))
     }
   }
 

@@ -4,7 +4,7 @@
  */
 
 // URL Google Apps Script yang di-deploy - Updated to new URL
-const API_URL = "https://script.google.com/macros/s/AKfycbz_JhmA3VFQ5jGcFs2Aq_fy-2wbJ57yN1NzC1Wfhc06049tdg26eOnk-lzEHdVeW1iQgQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbys0hnd3xHLdjinzAp2GBV3QoBDZak9Zn0TCaujwQLAG-e6Ue1V7H3h0_7YUzMzjsmd/exec";
 
 // Enable mock mode if Google Apps Script is not accessible
 const ENABLE_MOCK_MODE = false; // Disabled to use real Google Apps Script

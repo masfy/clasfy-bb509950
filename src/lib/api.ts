@@ -4,10 +4,6 @@
  */
 
 // URL Google Apps Script yang di-deploy
-// PENTING: Ganti URL ini dengan URL deploy yang BARU setelah memperbaiki backend
-// Current URLs sudah expired, perlu deploy ulang setelah fix backend
-// Lihat README.md untuk panduan cara men-deploy Google Apps Script
-// ⚠️  UPDATE URL INI SETELAH DEPLOY ULANG SCRIPT YANG SUDAH DIPERBAIKI ⚠️
 const API_URL = "https://script.google.com/macros/s/AKfycbyHPKmhprRbXWiXfePFPjc26LlcNcoT6oxJ37bfX96sZngZ1aZ-20e_-8VbfI8pwHokWw/exec";
 
 // Session credentials - persistent across page refresh
@@ -36,13 +32,13 @@ export function initializeSession() {
     if (userData) {
       const user = JSON.parse(userData);
       console.log('👤 Parsed user data:', { 
-        username: user.username, 
+        email: user.email, 
         role: user.role, 
         hasPassword: !!user.password 
       });
       
       // Restore credentials from stored user data
-      sessionCredentials.username = user.username || '';
+      sessionCredentials.username = user.email || '';
       sessionCredentials.password = user.password || '';
       
       console.log('🔐 Session credentials restored:', {
@@ -66,10 +62,10 @@ initializeSession();
 /**
  * Set current session credentials and save to localStorage
  */
-export function setSessionCredentials(username: string, password: string, userData?: any) {
-  console.log('🔐 Setting session credentials for:', username);
+export function setSessionCredentials(email: string, password: string, userData?: any) {
+  console.log('🔐 Setting session credentials for:', email);
   
-  sessionCredentials.username = username;
+  sessionCredentials.username = email;
   sessionCredentials.password = password;
   
   // Save to localStorage for persistence
@@ -146,83 +142,28 @@ export function refreshSessionCredentials() {
 
 /**
  * Melakukan request ke Google Apps Script
- * Menggunakan POST dengan URLSearchParams sebagai body (application/x-www-form-urlencoded)
- * Untuk menghindari CORS issue
+ * Menggunakan POST dengan JSON body sesuai dengan doPost function di backend
  */
 export async function apiRequest(
   action: string,
-  params: Record<string, string | number | boolean> = {}
+  params: Record<string, any> = {}
 ): Promise<any> {
   try {
-    // Buat form data dan tetapkan action
-    const formData = new URLSearchParams();
-    formData.append('action', action);
+    // Prepare request data sebagai JSON (sesuai dengan doPost di backend)
+    const requestData = {
+      action: action,
+      ...params
+    };
     
-    // Tambahkan credentials dari session (tidak dari localStorage)
-    if (action !== 'login') {
-      // Check and refresh session if needed
-      if (!hasSessionCredentials()) {
-        console.log('⚠️ No session credentials, attempting to refresh from localStorage...');
-        refreshSessionCredentials();
-        
-        // Check again after refresh
-        if (!hasSessionCredentials()) {
-          return { 
-            success: false, 
-            error: 'Tidak ada kredensial tersimpan. Silakan login terlebih dahulu.'
-          };
-        }
-      }
-      
-      formData.append('username', sessionCredentials.username);
-      formData.append('password', sessionCredentials.password);
-    }
-    
-    // Tambahkan parameter lainnya
-    Object.entries(params).forEach(([key, value]) => {
-      formData.append(key, String(value));
-    });
-    
-    // Log request untuk debugging (hide password)
-    const debugParams = { ...Object.fromEntries(formData.entries()) };
-    if (debugParams.password) debugParams.password = '********';
-    if (debugParams.studentPassword) debugParams.studentPassword = '********';
-    console.log(`API Request: ${action}`, debugParams);
-    
-    // Extra debugging for delete operations
-    if (action.includes('delete') || action.includes('Delete')) {
-      console.log('🗑️ DELETE OPERATION DEBUG:');
-      console.log('- Action:', action);
-      console.log('- Original params:', params);
-      console.log('- Form data entries:', Object.fromEntries(formData.entries()));
-      
-      // Check for any undefined values in form data
-      for (const [key, value] of formData.entries()) {
-        if (value === 'undefined' || value === 'null' || value === '') {
-          console.warn(`⚠️ Potential issue: ${key} = "${value}"`);
-        }
-      }
-    }
+    console.log('📤 API Request:', requestData);
 
-    // Extra debugging for add student operations
-    if (action === 'addStudent') {
-      console.log('➕ ADD STUDENT OPERATION DEBUG:');
-      console.log('- Action:', action);
-      console.log('- Original params:', params);
-      console.log('- Form data entries (exact order):', Object.fromEntries(formData.entries()));
-      
-      // Show the exact form data that will be sent
-      const formDataArray = [];
-      for (const [key, value] of formData.entries()) {
-        formDataArray.push(`${key}=${value}`);
-      }
-      console.log('- Form data string:', formDataArray.join('&'));
-    }
-
-    // Kirim request tanpa custom headers
+    // Kirim request dengan JSON body
     const response = await fetch(API_URL, {
       method: 'POST',
-      body: formData
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestData)
     });
 
     if (!response.ok) {
@@ -230,18 +171,23 @@ export async function apiRequest(
     }
 
     const data = await response.json();
-    console.log('API Response:', data);
-    
-    // If credentials are invalid, clear session
-    if (!data.success && data.error === 'Invalid credentials') {
-      console.log('❌ Invalid credentials received, clearing session');
-      clearSessionCredentials();
-    }
+    console.log('📥 API Response:', data);
     
     return data;
   } catch (error) {
-    console.error('API request error:', error);
-    throw new Error('Terjadi kesalahan saat menghubungi server');
+    console.error('❌ API request error:', error);
+    
+    // More specific error handling
+    if (error instanceof Error) {
+      if (error.message.includes('CORS')) {
+        throw new Error('Masalah koneksi dengan server. Pastikan Google Apps Script sudah di-deploy dengan benar.');
+      } else if (error.message.includes('Failed to fetch')) {
+        throw new Error('Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
+      }
+      throw new Error(error.message);
+    }
+    
+    throw new Error('Terjadi kesalahan yang tidak diketahui');
   }
 }
 
@@ -249,14 +195,23 @@ export async function apiRequest(
  * Auth API
  */
 export const authApi = {
-  login: (username: string, password: string, role: string) => {
-    // Login and store credentials
-    return apiRequest('login', { username, password, role }).then(response => {
+  login: (email: string, password: string, role: string) => {
+    console.log('🚀 Attempting login with:', { email, role });
+    
+    return apiRequest('login', { email, password, role }).then(response => {
+      console.log('🔍 Login response:', response);
+      
       if (response.success) {
         // Store in session memory and localStorage
-        setSessionCredentials(username, password, response.user);
+        setSessionCredentials(email, password, response.user);
+        console.log('✅ Login successful, credentials stored');
+      } else {
+        console.log('❌ Login failed:', response.message);
       }
       return response;
+    }).catch(error => {
+      console.error('❌ Login error:', error);
+      throw error;
     });
   },
     

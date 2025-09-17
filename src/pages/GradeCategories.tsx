@@ -164,30 +164,30 @@ export default function GradeCategories() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
+        <Card className="liquid-glass liquid-float">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Kategori</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{categories.length}</div>
+            <div className="text-2xl font-bold liquid-glass-text liquid-pulse">{categories.length}</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="liquid-glass liquid-float">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Bobot</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${totalWeight === 100 ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`text-2xl font-bold liquid-glass-text liquid-pulse ${totalWeight === 100 ? 'text-success' : 'text-warning'}`}>
               {totalWeight}%
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="liquid-glass liquid-float">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Status</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className={`text-sm font-medium ${totalWeight === 100 ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`text-sm font-medium liquid-glass-text ${totalWeight === 100 ? 'text-success' : 'text-warning'}`}>
               {totalWeight === 100 ? 'Valid' : 'Perlu Penyesuaian'}
             </div>
           </CardContent>

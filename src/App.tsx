@@ -23,6 +23,10 @@ import AttendanceInput from "./pages/AttendanceInput";
 import GradeReport from "./pages/GradeReport";
 import AttendanceReport from "./pages/AttendanceReport";
 import Gamification from "./pages/Gamification";
+import StudentGrades from "./pages/StudentGrades";
+import StudentProgress from "./pages/StudentProgress";
+import StudentLeaderboard from "./pages/StudentLeaderboard";
+import StudentProfile from "./pages/StudentProfile";
 
 const queryClient = new QueryClient();
 
@@ -87,10 +91,10 @@ const App = () => (
               
               {/* Student Routes */}
               <Route path="/siswa/dashboard" element={<StudentRoute><StudentDashboard /></StudentRoute>} />
-              <Route path="/siswa/nilai" element={<StudentRoute><div className="p-6"><h1 className="text-2xl font-bold">Nilai & Tugas</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></StudentRoute>} />
-              <Route path="/siswa/progress" element={<StudentRoute><div className="p-6"><h1 className="text-2xl font-bold">Progress Belajar</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></StudentRoute>} />
-              <Route path="/siswa/leaderboard" element={<StudentRoute><div className="p-6"><h1 className="text-2xl font-bold">Leaderboard</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></StudentRoute>} />
-              <Route path="/siswa/profil" element={<StudentRoute><div className="p-6"><h1 className="text-2xl font-bold">Profil Siswa</h1><p className="text-muted-foreground">Halaman ini akan segera hadir</p></div></StudentRoute>} />
+              <Route path="/siswa/nilai" element={<StudentRoute><StudentGrades /></StudentRoute>} />
+              <Route path="/siswa/progress" element={<StudentRoute><StudentProgress /></StudentRoute>} />
+              <Route path="/siswa/leaderboard" element={<StudentRoute><StudentLeaderboard /></StudentRoute>} />
+              <Route path="/siswa/profil" element={<StudentRoute><StudentProfile /></StudentRoute>} />
               
               <Route path="*" element={<NotFound />} />
             </Routes>

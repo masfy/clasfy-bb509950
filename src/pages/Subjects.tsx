@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,17 +18,40 @@ interface Subject {
 }
 
 export default function Subjects() {
-  const [subjects, setSubjects] = useState<Subject[]>([
-    { id: "1", code: "MAT", name: "Matematika", description: "Matematika Wajib", credits: 4 },
-    { id: "2", code: "BIO", name: "Biologi", description: "Ilmu Biologi", credits: 3 },
-    { id: "3", code: "FIS", name: "Fisika", description: "Ilmu Fisika", credits: 3 },
-    { id: "4", code: "KIM", name: "Kimia", description: "Ilmu Kimia", credits: 3 },
-    { id: "5", code: "BIN", name: "Bahasa Indonesia", description: "Bahasa Indonesia Wajib", credits: 4 }
-  ]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
   const [formData, setFormData] = useState({ code: "", name: "", description: "", credits: 0 });
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
+
+  const fetchSubjects = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('https://script.google.com/macros/s/AKfycbz_JhmA3VFQ5jGcFs2Aq_fy-2wbJ57yN1NzC1Wfhc06049tdg26eOnk-lzEHdVeW1iQgQ/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'getSubjects' })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setSubjects(data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching subjects:', error);
+      toast({ 
+        title: "Error", 
+        description: "Gagal memuat data mata pelajaran",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

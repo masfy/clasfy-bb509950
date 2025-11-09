@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -17,14 +17,59 @@ interface Student {
 export default function AttendanceInput() {
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [students, setStudents] = useState<Student[]>([
-    { id: "1", nisn: "2023001", name: "Ahmad Fauzi", status: 'hadir' },
-    { id: "2", nisn: "2023002", name: "Siti Nurhaliza", status: 'hadir' },
-    { id: "3", nisn: "2023003", name: "Budi Santoso", status: 'hadir' }
-  ]);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const classes = ["X IPA 1", "X IPA 2", "XI IPA 1", "XI IPA 2"];
+  const [classes, setClasses] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetchClasses();
+  }, []);
+
+  useEffect(() => {
+    if (selectedClass) {
+      fetchStudents();
+    }
+  }, [selectedClass]);
+
+  const fetchClasses = async () => {
+    try {
+      const response = await fetch('https://script.google.com/macros/s/AKfycbz_JhmA3VFQ5jGcFs2Aq_fy-2wbJ57yN1NzC1Wfhc06049tdg26eOnk-lzEHdVeW1iQgQ/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'getClasses' })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setClasses(data.data.map((c: any) => c.name));
+      }
+    } catch (error) {
+      console.error('Error fetching classes:', error);
+    }
+  };
+
+  const fetchStudents = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('https://script.google.com/macros/s/AKfycbz_JhmA3VFQ5jGcFs2Aq_fy-2wbJ57yN1NzC1Wfhc06049tdg26eOnk-lzEHdVeW1iQgQ/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'getStudents',
+          class: selectedClass
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setStudents(data.data.map((s: any) => ({ ...s, status: 'hadir' as const })) || []);
+      }
+    } catch (error) {
+      console.error('Error fetching students:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   const statusOptions = [
     { value: 'hadir', label: 'Hadir', color: 'text-green-600' },
     { value: 'sakit', label: 'Sakit', color: 'text-yellow-600' },

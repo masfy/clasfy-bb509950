@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,15 +21,78 @@ interface Grade {
 export default function GradeInput() {
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
-  const [grades, setGrades] = useState<Grade[]>([
-    { studentId: "1", studentName: "Ahmad Fauzi", nisn: "2023001", tugas: 85, uts: 80, uas: 88, finalGrade: 84 },
-    { studentId: "2", studentName: "Siti Nurhaliza", nisn: "2023002", tugas: 90, uts: 85, uas: 92, finalGrade: 89 },
-    { studentId: "3", studentName: "Budi Santoso", nisn: "2023003", tugas: 78, uts: 75, uas: 80, finalGrade: 78 }
-  ]);
+  const [grades, setGrades] = useState<Grade[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const classes = ["X IPA 1", "X IPA 2", "XI IPA 1", "XI IPA 2"];
-  const subjects = ["Matematika", "Biologi", "Fisika", "Kimia", "Bahasa Indonesia"];
+  const [classes, setClasses] = useState<string[]>([]);
+  const [subjects, setSubjects] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetchClasses();
+    fetchSubjects();
+  }, []);
+
+  useEffect(() => {
+    if (selectedClass && selectedSubject) {
+      fetchGrades();
+    }
+  }, [selectedClass, selectedSubject]);
+
+  const fetchClasses = async () => {
+    try {
+      const response = await fetch('https://script.google.com/macros/s/AKfycbz_JhmA3VFQ5jGcFs2Aq_fy-2wbJ57yN1NzC1Wfhc06049tdg26eOnk-lzEHdVeW1iQgQ/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'getClasses' })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setClasses(data.data.map((c: any) => c.name));
+      }
+    } catch (error) {
+      console.error('Error fetching classes:', error);
+    }
+  };
+
+  const fetchSubjects = async () => {
+    try {
+      const response = await fetch('https://script.google.com/macros/s/AKfycbz_JhmA3VFQ5jGcFs2Aq_fy-2wbJ57yN1NzC1Wfhc06049tdg26eOnk-lzEHdVeW1iQgQ/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'getSubjects' })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setSubjects(data.data.map((s: any) => s.name));
+      }
+    } catch (error) {
+      console.error('Error fetching subjects:', error);
+    }
+  };
+
+  const fetchGrades = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('https://script.google.com/macros/s/AKfycbz_JhmA3VFQ5jGcFs2Aq_fy-2wbJ57yN1NzC1Wfhc06049tdg26eOnk-lzEHdVeW1iQgQ/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'getGrades',
+          class: selectedClass,
+          subject: selectedSubject
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setGrades(data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching grades:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const calculateFinalGrade = (tugas: number, uts: number, uas: number) => {
     // Bobot: Tugas 30%, UTS 30%, UAS 40%

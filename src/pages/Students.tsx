@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Edit, Trash2, Search } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Student {
@@ -19,11 +19,8 @@ interface Student {
 }
 
 export default function Students() {
-  const [students, setStudents] = useState<Student[]>([
-    { id: "1", nisn: "2023001", name: "Ahmad Fauzi", class: "X IPA 1", email: "ahmad@email.com", phone: "081234567890" },
-    { id: "2", nisn: "2023002", name: "Siti Nurhaliza", class: "X IPA 1", email: "siti@email.com", phone: "081234567891" },
-    { id: "3", nisn: "2023003", name: "Budi Santoso", class: "X IPA 2", email: "budi@email.com", phone: "081234567892" }
-  ]);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [formData, setFormData] = useState({ nisn: "", name: "", class: "", email: "", phone: "" });
@@ -31,6 +28,34 @@ export default function Students() {
   const { toast } = useToast();
 
   const classes = ["X IPA 1", "X IPA 2", "XI IPA 1", "XI IPA 2", "XII IPA 1"];
+
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  const fetchStudents = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('https://script.google.com/macros/s/AKfycbz_JhmA3VFQ5jGcFs2Aq_fy-2wbJ57yN1NzC1Wfhc06049tdg26eOnk-lzEHdVeW1iQgQ/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'getStudents' })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setStudents(data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching students:', error);
+      toast({ 
+        title: "Error", 
+        description: "Gagal memuat data siswa",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const filteredStudents = students.filter(student =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -192,39 +217,54 @@ export default function Students() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>NISN</TableHead>
-                <TableHead>Nama</TableHead>
-                <TableHead>Kelas</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Telepon</TableHead>
-                <TableHead>Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredStudents.map((student) => (
-                <TableRow key={student.id}>
-                  <TableCell className="font-medium">{student.nisn}</TableCell>
-                  <TableCell>{student.name}</TableCell>
-                  <TableCell>{student.class}</TableCell>
-                  <TableCell>{student.email}</TableCell>
-                  <TableCell>{student.phone}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm" onClick={() => handleEdit(student)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleDelete(student.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          {isLoading ? (
+            <div className="flex justify-center items-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <span className="ml-2">Memuat data siswa...</span>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>NISN</TableHead>
+                  <TableHead>Nama</TableHead>
+                  <TableHead>Kelas</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Telepon</TableHead>
+                  <TableHead>Aksi</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredStudents.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      {searchTerm ? "Tidak ada siswa yang ditemukan" : "Belum ada data siswa"}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredStudents.map((student) => (
+                    <TableRow key={student.id}>
+                      <TableCell className="font-medium">{student.nisn}</TableCell>
+                      <TableCell>{student.name}</TableCell>
+                      <TableCell>{student.class}</TableCell>
+                      <TableCell>{student.email}</TableCell>
+                      <TableCell>{student.phone}</TableCell>
+                      <TableCell>
+                        <div className="flex space-x-2">
+                          <Button variant="outline" size="sm" onClick={() => handleEdit(student)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => handleDelete(student.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

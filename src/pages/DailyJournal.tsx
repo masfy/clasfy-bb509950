@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,18 +27,8 @@ interface JournalEntry {
 }
 
 export default function DailyJournal() {
-  const [entries, setEntries] = useState<JournalEntry[]>([
-    {
-      id: "1",
-      date: new Date(),
-      class: "X IPA 1",
-      subject: "Matematika",
-      topic: "Fungsi Kuadrat",
-      activities: "Penjelasan rumus dan contoh soal",
-      homework: "Latihan soal halaman 45-47",
-      notes: "Siswa memahami dengan baik"
-    }
-  ]);
+  const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<JournalEntry | null>(null);
   const [formData, setFormData] = useState({
@@ -52,8 +42,65 @@ export default function DailyJournal() {
   });
   const { toast } = useToast();
 
-  const classes = ["X IPA 1", "X IPA 2", "XI IPA 1", "XI IPA 2"];
-  const subjects = ["Matematika", "Biologi", "Fisika", "Kimia", "Bahasa Indonesia"];
+  const [classes, setClasses] = useState<string[]>([]);
+  const [subjects, setSubjects] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetchClasses();
+    fetchSubjects();
+    fetchJournals();
+  }, []);
+
+  const fetchClasses = async () => {
+    try {
+      const response = await fetch('https://script.google.com/macros/s/AKfycbz_JhmA3VFQ5jGcFs2Aq_fy-2wbJ57yN1NzC1Wfhc06049tdg26eOnk-lzEHdVeW1iQgQ/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'getClasses' })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setClasses(data.data.map((c: any) => c.name));
+      }
+    } catch (error) {
+      console.error('Error fetching classes:', error);
+    }
+  };
+
+  const fetchSubjects = async () => {
+    try {
+      const response = await fetch('https://script.google.com/macros/s/AKfycbz_JhmA3VFQ5jGcFs2Aq_fy-2wbJ57yN1NzC1Wfhc06049tdg26eOnk-lzEHdVeW1iQgQ/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'getSubjects' })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setSubjects(data.data.map((s: any) => s.name));
+      }
+    } catch (error) {
+      console.error('Error fetching subjects:', error);
+    }
+  };
+
+  const fetchJournals = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('https://script.google.com/macros/s/AKfycbz_JhmA3VFQ5jGcFs2Aq_fy-2wbJ57yN1NzC1Wfhc06049tdg26eOnk-lzEHdVeW1iQgQ/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'getJournals' })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setEntries(data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching journals:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
